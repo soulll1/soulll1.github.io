@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>年轮 - SIGS大事记可视化</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌳</text></svg>">
+    <meta name="description" content="生命年轮 - 一个交互式的3D树木年轮可视化应用">
+    <meta name="keywords" content="年轮,生命,可视化,3D,树木,生长">
+</head>
+<body>
+    <div id="app">
+        <!-- 背景粒子效果 -->
+        <div id="particles-bg"></div>
+        
+        <!-- 顶部导航栏 -->
+        <nav id="top-nav">
+            <div class="nav-brand">
+                <span class="nav-icon">🌳</span>
+                <span class="nav-title">年轮</span>
+            </div>
+            <div class="nav-info">
+                <span class="nav-subtitle">SIGS大事记可视化</span>
+            </div>
+        </nav>
+        
+        <!-- 3D场景容器 -->
+        <div id="canvas-container"></div>
+        
+        <!-- 控制面板 -->
+        <div id="control-panel">
+            <div class="panel-header">
+                <h2>年轮控制台</h2>
+            </div>
+            
+            <!-- 基础控制 -->
+            <div class="control-section">
+                <h3>基础设置</h3>
+                <div class="control-group">
+                    <label for="ring-count">年轮数量:</label>
+                    <input type="range" id="ring-count" min="5" max="16" value="16">
+                    <span id="ring-count-value">16</span>
+                </div>
+                
+                <div class="control-group">
+                    <label for="trunk-radius">树干半径:</label>
+                    <input type="range" id="trunk-radius" min="0.1" max="2" step="0.1" value="0.5">
+                    <span id="trunk-radius-value">0.5</span>
+                </div>
+                
+                <div class="control-group">
+                    <label for="ring-thickness">年轮厚度:</label>
+                    <input type="range" id="ring-thickness" min="0.01" max="0.2" step="0.01" value="0.05">
+                    <span id="ring-thickness-value">0.05</span>
+                </div>
+            </div>
+            
+            <!-- 生长模拟控制 -->
+            <div class="control-section">
+                <h3>生长模拟</h3>
+                <div class="control-group">
+                    <button id="play-growth" class="btn-primary">
+                        <span class="btn-icon">▶</span>
+                        播放生长
+                    </button>
+                    <button id="pause-growth" class="btn-secondary">
+                        <span class="btn-icon">⏸</span>
+                        暂停
+                    </button>
+                    <button id="reset-growth" class="btn-outline">
+                        <span class="btn-icon">↻</span>
+                        重置
+                    </button>
+                </div>
+                
+                <div class="control-group">
+                    <label for="growth-speed">生长速度:</label>
+                    <input type="range" id="growth-speed" min="0.1" max="3" step="0.1" value="1">
+                    <span id="growth-speed-value">1x</span>
+                </div>
+                
+                <div class="control-group">
+                    <label for="weather-factor">气候因子:</label>
+                    <select id="weather-factor">
+                        <option value="normal">🌤️ 正常年份</option>
+                        <option value="good">☀️ 丰年</option>
+                        <option value="poor">☁️ 歉年</option>
+                        <option value="drought">🏜️ 干旱年</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- 视觉效果控制 -->
+            <div class="control-section">
+                <h3>视觉效果</h3>
+                <div class="control-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="show-age-colors" checked>
+                        <span class="checkmark"></span>
+                        显示年龄颜色
+                    </label>
+                </div>
+                
+                <div class="control-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="show-wireframe">
+                        <span class="checkmark"></span>
+                        线框模式
+                    </label>
+                </div>
+                
+                <div class="control-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="auto-rotate">
+                        <span class="checkmark"></span>
+                        自动旋转
+                    </label>
+                </div>
+            </div>
+            
+            <!-- 信息显示 -->
+            <div class="control-section">
+                <h3>年轮信息</h3>
+                <div id="ring-info">
+                    <div class="info-placeholder">
+                        <span class="info-icon">🔍</span>
+                        <p>点击年轮查看详细信息</p>
+                        <small>单击3D场景中的年轮环获取详细数据</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 操作提示 -->
+        <div id="help-overlay" class="help-overlay">
+            <div class="help-content">
+                <h3>🎯 操作提示</h3>
+                <div class="help-item">
+                    <span class="help-icon">🖱️</span>
+                    <span>拖拽旋转视角</span>
+                </div>
+                <div class="help-item">
+                    <span class="help-icon">🔍</span>
+                    <span>滚轮缩放</span>
+                </div>
+                <div class="help-item">
+                    <span class="help-icon">👆</span>
+                    <span>点击年轮查看信息</span>
+                </div>
+                <button id="close-help" class="close-help">知道了</button>
+            </div>
+        </div>
+        
+        <!-- 状态指示器 -->
+        <div id="status-bar">
+            <div class="status-item">
+                <span class="status-label">FPS:</span>
+                <span id="fps-counter">60</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">年轮:</span>
+                <span id="ring-counter">16</span>
+            </div>
+        </div>
+        
+        <!-- 里程碑详情面板 -->
+        <div id="milestone-detail"></div>
+        
+        <!-- 加载指示器 -->
+        <div id="loading" class="loading">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <p>正在生成年轮...</p>
+                <div class="loading-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <span class="progress-text">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 快捷键提示 -->
+        <!-- <div id="shortcuts-hint" class="shortcuts-hint">
+            <div class="shortcut-item">
+                <kbd>空格</kbd> 播放/暂停
+            </div>
+            <div class="shortcut-item">
+                <kbd>R</kbd> 重置视角
+            </div>
+            <div class="shortcut-item">
+                <kbd>H</kbd> 显示/隐藏帮助
+            </div>
+        </div> -->
+    </div>
+    
+    <!-- Three.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="app.js"></script>
+    <script src="ui-enhancements.js"></script>
+</body>
+</html>
