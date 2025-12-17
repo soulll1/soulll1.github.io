@@ -496,7 +496,7 @@ body {
         left: 0.75rem;
         right: auto;
         max-width: 200px;
-        top: 6.5rem;
+        top: 4.5rem;
         bottom: auto;
         transform: translateY(0) translateX(0);
         max-height: calc(100vh - 50vh - 5rem);
@@ -546,7 +546,7 @@ body {
         left: 0.5rem;
         right: auto;
         max-width: 170px;
-        top: 6rem;
+        top: 4rem;
         bottom: auto;
         max-height: calc(100vh - 45vh - 4.5rem);
     }
